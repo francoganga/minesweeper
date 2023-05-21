@@ -4,6 +4,23 @@
 
 #define CAPACITY 500
 
+typedef struct Point
+{
+  int x;
+  int y;
+} Point;
+
+int point_cmp(Point* a, Point* b)
+{
+  if ((a->x == b->x) && (a->y == b->y)) {
+    return 0;
+  }
+
+  return 1;
+}
+
+
+
 unsigned long hash_function(char *str)
 {
     unsigned long i = 0;
@@ -20,15 +37,15 @@ unsigned long hash_function(char *str)
 /*
   https://stackoverflow.com/a/682617
 */
-unsigned long hash_function2(int x, int y)
+unsigned long hash_function2(Point *point)
 {
-  unsigned long n = ((x + y)*(x + y + 1)/2) + y;
+  unsigned long n = ((point->x + point->y)*(point->x + point->y + 1)/2) + point->y;
   return n;
 }
 
 typedef struct Ht_item
 {
-    char *key;
+    Point *key;
     char *value;
 } Ht_item;
 
@@ -39,12 +56,12 @@ typedef struct Hash_table
     int count;
 } Hash_table;
 
-Ht_item *create_item(char *key, char *value)
+Ht_item *create_item(Point *key, char *value)
 {
     Ht_item *item = (Ht_item *)malloc(sizeof(Ht_item));
-    item->key = (char *) malloc(strlen(key) + 1);
+    item->key = (Point *) malloc(sizeof(Point));
     item->value = (char *) malloc(strlen(value) + 1);
-    strcpy(item->key, key);
+    item->key = key;
     strcpy(item->value, value);
 
     return item;
@@ -93,7 +110,7 @@ void print_table(Hash_table* table)
     {
         if (table->items[i])
         {
-            printf("Index:%d, Key:%s, Value:%s\n", i, table->items[i] -> key, table->items[i]->value);
+          printf("Index:%d, Key:(%d, %d), Value:%s\n", i, table->items[i]->key->x, table->items[i]->key->y, table->items[i]->value);
         }
     }
 
@@ -106,11 +123,11 @@ void handle_collision(Hash_table* table, Ht_item *item)
     exit(1);
 }
 
-void ht_insert(Hash_table* table, char *key, char *value)
+void ht_insert(Hash_table* table, Point *key, char *value)
 {
     Ht_item *item = create_item(key, value);
 
-    int index = hash_function(key);
+    int index = hash_function2(key);
 
     Ht_item *current_item = table->items[index];
 
@@ -126,7 +143,7 @@ void ht_insert(Hash_table* table, char *key, char *value)
         table->items[index] = item;
         table->count++;
     } else {
-        if (strcmp(current_item->key, key) == 0) {
+        if (point_cmp(current_item->key, key) == 0) {
             strcpy(table->items[index]->value, value);
             return;
         } else {
@@ -136,13 +153,13 @@ void ht_insert(Hash_table* table, char *key, char *value)
     }
 }
 
-char* ht_search(Hash_table* table, char *key)
+char* ht_search(Hash_table* table, Point *key)
 {
-    int index = hash_function(key);
+    int index = hash_function2(key);
     Ht_item *item = table->items[index];
 
     if (item != NULL) {
-        if (strcmp(item->key, key) == 0) {
+        if (point_cmp(item->key, key) == 0) {
             return item->value;
         }
     }
@@ -150,29 +167,28 @@ char* ht_search(Hash_table* table, char *key)
     return NULL;
 }
 
-void print_search(Hash_table* table, char *key)
+void print_search(Hash_table* table, Point *key)
 {
     char* val;
 
     if ((val = ht_search(table, key)) == NULL) {
-        printf("Key:%s does not exist\n", key);
+        printf("Key:(%d, %d) does not exist\n", key->x, key->y);
         return;
     } else {
-        printf("Key:%s, Value:%s\n", key, val);
+        printf("Key:(%d, %d), Value:%s\n", key->x, key->y, val);
     }
 }
 
 int main()
 {
 
-  int rows = 8;
+    Hash_table *table = create_hash_table(CAPACITY);
 
-  for (int i = 0; i < rows; i++)
-  {
-    for (int j = 0; j < rows; j++) {
-      unsigned long res = hash_function2(i, j);
-      printf("%lu\n", res);
-    }
-  }
+
+    ht_insert(table, &(Point){1, 2}, "12");
+    ht_insert(table, &(Point){0, 0}, "00");
+    ht_insert(table, &(Point){0, 0}, "00 version 2");
+
+    print_table(table);
 
 }
