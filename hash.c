@@ -12,7 +12,6 @@ typedef struct Point
 
 int point_cmp(Point* a, Point* b)
 {
-  printf("(%d == %d) && (%d == %d)", a->x, b->x, a->y, b->y);
   if ((a->x == b->x) && (a->y == b->y)) {
     return 0;
   }
@@ -44,7 +43,6 @@ typedef struct Hash_table
 
 Ht_item *create_item(Point *key, int value)
 {
-  printf("create_item: value: %d\n", value);
 
     Ht_item *item = (Ht_item *)malloc(sizeof(Ht_item));
     item->key = (Point *) malloc(sizeof(Point));
@@ -183,11 +181,6 @@ void print_search(Hash_table* table, Point *key)
     }
 }
 
-void test_print(int* test) {
-  printf("%d\n", *test);
-}
-
-
 int main()
 {
 
@@ -201,12 +194,10 @@ int main()
     int val2 = 1;
 
 
-    
-    printf("address of val1: %p\n", &val1);
     ht_insert(table, &p1, 9);
     ht_insert(table, &p1, 1);
     ht_insert(table, &p2, 8);
-    ht_insert(table, &(Point){8,8}, 88);
+    ht_insert(table, {8,8}, 88);
 
     print_table(table);
 }
