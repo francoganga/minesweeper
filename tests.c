@@ -9,7 +9,7 @@
 #include "hash.h"
 
 
-uint64_t hash_c(const char* str, size_t length) {
+uint64_t hash_c() {
 
   uint64_t hash_value = 0;
 
@@ -21,7 +21,7 @@ uint64_t hash(const char* str, size_t length) {
 
   uint64_t hash_value = 0;
 
-  for (int i = 0; i < length; i++) {
+  for (size_t i = 0; i < length; i++) {
 
     hash_value += str[i];
     hash_value = hash_value * str[i];
