@@ -61,6 +61,7 @@ void hash_table_print(printfn* func, hash_table* ht){
     
             while (tmp != NULL) {
                 if (func != NULL) {
+                  printf("key: %s ", tmp->key);
                   func(tmp->value);
                 } else {
                   printf("\"%s\": \"%p\"\n", tmp->key, tmp->value);
@@ -86,7 +87,6 @@ bool hash_table_insert(hash_table* ht, const char* key, void* value){
 
     if (current_entry != NULL ) {
         if (strcmp(current_entry->key, key) == 0) {
-            printf("exists, overwrite");
             current_entry->value = value;
             return true;
         } else {
