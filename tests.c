@@ -31,32 +31,58 @@ uint64_t hash(const char* str, size_t length) {
 
 }
 
-void my_print(void* val) {
+void my_print_int(void* val) {
 
   printf("[MY_PRINT]\t value: %d\n", *(int*) val);
+}
+
+void my_print_str(void* val) {
+  printf("STR_VAL\t: val: %s\n", (char*)val);
+}
+
+void test_hash_table_without_collision() {
+
+  const int tablesize = (1<<10);
+
+  hash_table* table = hash_table_create(tablesize, hash);
+
+  int val1 = 99;
+  int val2 = 77;
+  
+  hash_table_insert(table, "a1", &val1);
+  hash_table_insert(table, "a2", &val2);
+
+  int* res1 = hash_table_lookup(table, "a1");
+  int* res2 = hash_table_lookup(table, "a2");
+
+  munit_assert_ptr_equal(res1, &val1);
+  munit_assert_ptr_equal(res2, &val2);
+}
+
+void test_hash_table_with_collision() {
+
+  const int tablesize = (1<<10);
+
+  hash_table* table = hash_table_create(tablesize, hash_c);
+
+  int val1 = 99;
+  int val2 = 77;
+  
+  hash_table_insert(table, "a1", &val1);
+  hash_table_insert(table, "a2", &val2);
+
+  int* res1 = hash_table_lookup(table, "a1");
+  int* res2 = hash_table_lookup(table, "a2");
+
+  munit_assert_ptr_equal(res1, &val1);
+  munit_assert_ptr_equal(res2, &val2);
 }
 
 
 int main(void) {
 
-
-  const int tablesize = (1<<20);
-
-  hash_table* table = hash_table_create(tablesize, hash_c);
-
-
-  int val1 = 99;
-  int val2 = 77;
-
-
-
-
-  
-  hash_table_insert(table, "a1", (void*) &val1);
-  hash_table_insert(table, "a2", (void*) &val2);
-
-  hash_table_print(my_print, table);
-
+  test_hash_table_without_collision();
+  test_hash_table_with_collision();
 
 }
 

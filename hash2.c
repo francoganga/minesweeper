@@ -90,9 +90,14 @@ bool hash_table_insert(hash_table* ht, const char* key, void* value){
             current_entry->value = value;
             return true;
         } else {
-            handle_collission(ht, current_entry);
-            // FIXME
-            return true;
+
+          entry* e = malloc(sizeof(*e));
+          e->value = value;
+          e->key = malloc(strlen(key) + 1);
+          strcpy(e->key, key);
+
+          current_entry->next = e;
+          return true;
         }
     }
 
