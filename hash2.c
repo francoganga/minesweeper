@@ -15,6 +15,7 @@ typedef struct entry {
 
 typedef struct _hash_table {
     uint32_t size;
+    uint32_t count;
     hashfunction* hf;
 
     entry** elements;
@@ -26,18 +27,11 @@ static size_t hash_table_index(hash_table* ht, const char* key) {
     return result;
 }
 
-static void handle_collission(hash_table* ht, entry* entry) {
-
-
-
-    printf("TODO: handle_collission");
-    exit(1);
-}
-
 
 hash_table* hash_table_create(uint32_t size, hashfunction* hf){
     hash_table* ht = malloc(sizeof(hash_table));
     ht->size = size;
+    ht->count = 0;
     ht->hf = hf;
     ht->elements = calloc(size, sizeof(entry*));
 
@@ -95,6 +89,7 @@ bool hash_table_insert(hash_table* ht, const char* key, void* value){
           e->value = value;
           e->key = malloc(strlen(key) + 1);
           strcpy(e->key, key);
+          ht->count++;
 
           current_entry->next = e;
           return true;
@@ -109,7 +104,7 @@ bool hash_table_insert(hash_table* ht, const char* key, void* value){
 
     e->next = ht->elements[index];
     ht->elements[index] = e;
-    /* ht->size++; */
+    ht->count++;
 
     return true;
 }
@@ -156,6 +151,31 @@ void hash_table_delete(hash_table* ht, const char* key){
         // deleting from not the head
         prev->next = tmp->next;
     }
+    ht->count--;
 
     free(tmp);
 }
+
+char** hash_table_keys(hash_table* ht){
+    assert(ht != NULL);
+    char** keys = malloc(ht->count * sizeof(char*));
+    int key_index = 0;
+
+    for (uint32_t i=0; i<ht->size; i++) {
+        if (ht->elements[i] != NULL) {
+            entry* tmp = ht->elements[i];
+            while (tmp != NULL) {
+                keys[key_index] = tmp->key;
+                tmp = tmp->next;
+                key_index++;
+            }
+        }
+    }
+    return keys;
+}
+
+uint32_t hash_table_count(hash_table* ht){
+    assert(ht != NULL);
+    return ht->count;
+}
+
