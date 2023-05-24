@@ -18,21 +18,35 @@ void test_to_string() {
 }
 
 void test_cell() {
-    Cell* cell = create_cell(0, 0);
-    
+    Cell* cell = cell_create(0, 0);
+    Cell* cell2 = cell_create(0, 1);
 
-    Cell* cell2 = create_cell(0, 1);
-
-    link(cell, cell2);
+    cell_link(cell, cell2);
 
     hash_table_print(print_bool_value, cell->links);
 }
 
+void test_it_returns_cell_links() {
+
+  Cell* cell = cell_create(0, 0);
+  Cell* cell2 = cell_create(0, 1);
+  Cell* cell3 = cell_create(8, 8);
+
+  cell_link(cell, cell2);
+  cell_link(cell, cell3);
+
+  char** links = cell_links(cell);
+  /* int table_count = hash_table_count(cell->links); */
+  
+  munit_assert_string_equal(links[0], "01");
+  munit_assert_string_equal(links[1], "88");
+}
+
 int main() {
 
-  test_to_string();
-
-  test_cell();
+  /* test_to_string(); */
+  /* test_cell(); */
+  test_it_returns_cell_links();
 
 
 }

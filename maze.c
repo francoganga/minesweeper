@@ -48,7 +48,7 @@ uint64_t hash(const char* str, size_t length) {
   return hash_value;
 }
 
-Cell* create_cell(int row, int col) {
+Cell* cell_create(int row, int col) {
   Cell* cell = malloc(sizeof(Cell));
   cell->row = row;
   cell->col = col;
@@ -56,22 +56,37 @@ Cell* create_cell(int row, int col) {
   return cell;
 }
 
-void link(Cell* self, Cell* target) {
+Cell* cell_link(Cell* self, Cell* target) {
 
   // TODO: investigate why i cant pass a pointer to a local defined int
-  bool* val = malloc(sizeof(bool));
-  *val = true;
+  bool val = true;
+  bool* val_ptr = &val;
 
-  hash_table_insert(self->links, to_string(target->row, target->col), val);
+  hash_table_insert(self->links, to_string(target->row, target->col), val_ptr);
+  hash_table_insert(target->links, to_string(self->row, self->col), val_ptr);
+
+  return self;
+}
+
+Cell* cell_link_bidi(Cell* self, Cell* target) {
+  cell_link(self, target);
+  cell_link(target, self);
+
+  return self;
 }
 
 
-void unlink(Cell* self, Cell* target) {
+Cell* cell_unlink(Cell* self, Cell* target) {
 
   hash_table_delete(self->links, to_string(target->row, target->col));
+  return self;
 }
 
 bool linked(Cell* self, Cell* target) {
 
   return hash_table_lookup(self->links, to_string(target->row, target->col));
+}
+
+char** cell_links(Cell* self) {
+  return hash_table_keys(self->links);
 }

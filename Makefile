@@ -7,6 +7,9 @@ all: maze tests
 run: maze
 	./maze_test.out
 
+run_tests: tests
+	./tests.out
+
 maze: maze.o hash.o munit.o
 	$(CC) $(CFLAGS) maze_test.o hash2.o munit.o -o maze_test.out
 

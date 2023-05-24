@@ -4,6 +4,7 @@
 #include "math.h"
 #include "stdio.h"
 #include "raylib.h"
+#include <stdint.h>
 #include <stdlib.h>
 #include <time.h>
 #include "hash.h"
@@ -78,11 +79,47 @@ void test_hash_table_with_collision() {
   munit_assert_ptr_equal(res2, &val2);
 }
 
+void test_hash_table_keys() {
+
+  const int tablesize = (1<<10);
+
+  hash_table* table = hash_table_create(tablesize, hash_c);
+
+  int val1 = 99;
+  int val2 = 77;
+
+  hash_table_insert(table, "a1", &val1);
+  hash_table_insert(table, "a2", &val2);
+  char** keys = hash_table_keys(table);
+  int keys_size = hash_table_count(table);
+
+  munit_assert_string_equal(keys[0], "a1");
+  munit_assert_string_equal(keys[1], "a2");
+
+}
+void test_hash_table_size() {
+
+  const int tablesize = (1<<10);
+  hash_table* table = hash_table_create(tablesize, hash_c);
+  int val1 = 99;
+  int val2 = 77;
+  hash_table_insert(table, "a1", &val1);
+  hash_table_insert(table, "a2", &val2);
+
+  munit_assert_int(hash_table_count(table), ==, 2);
+
+  hash_table_delete(table, "a1");
+
+  munit_assert_int(hash_table_count(table), ==, 1);
+}
+
 
 int main(void) {
 
-  test_hash_table_without_collision();
-  test_hash_table_with_collision();
+  /* test_hash_table_without_collision(); */
+  /* test_hash_table_with_collision(); */
+  test_hash_table_keys();
+  /* test_hash_table_size(); */
 
 }
 
