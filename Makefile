@@ -1,34 +1,38 @@
 # TARGET = maze
 CC = gcc
 CFLAGS = -Wall -Werror -Wextra
+BUILD= build
 
 all: maze tests
 	
-run: maze
-	./maze_test.out
+run: $(BUILD)/maze
+	./$(BUILD)/maze
 
-run_tests: tests
-	./tests.out
+run_tests: $(BUILD)/tests
+	./$(BUILD)/tests
 
-maze: maze.o hash.o munit.o
-	$(CC) $(CFLAGS) maze_test.o hash2.o munit.o -o maze_test.out
+$(BUILD)/maze: $(BUILD)/maze.o $(BUILD)/hash.o $(BUILD)/munit.o
+	$(CC) $(CFLAGS) $(BUILD)/maze.o $(BUILD)/hash.o $(BUILD)/munit.o -o $@
 
-tests: tests.o maze.o hash.o munit.o
-	$(CC) $(CFLAGS) tests.o hash2.o munit.o -o tests.out
+$(BUILD)/tests: $(BUILD)/tests.o $(BUILD)/maze.o $(BUILD)/hash.o $(BUILD)/munit.o
+	$(CC) $(CFLAGS) $(BUILD)/tests.o $(BUILD)/hash.o $(BUILD)/munit.o -o $@
 
-tests.o: tests.c
-	$(CC) $(CFLAGS) -c tests.c
+$(BUILD)/tests.o: tests.c build
+	$(CC) $(CFLAGS) -c tests.c -o $@
 
 # %.o: %.c
 # 	$(CC) $(CFLAGS) -c $<
-maze.o: maze.c
-	$(CC) $(CFLAGS) -c maze_test.c
+$(BUILD)/maze.o: maze.c build
+	$(CC) $(CFLAGS) -c maze_test.c -o $@
 
-hash.o: hash2.c
-	$(CC) $(CFLAGS) -c hash2.c
+$(BUILD)/hash.o: hash2.c build
+	$(CC) $(CFLAGS) -c hash2.c -o $@
 
-munit.o: munit/munit.c
-	$(CC) $(CFLAGS) -c munit/munit.c
+$(BUILD)/munit.o: munit/munit.c build
+	$(CC) $(CFLAGS) -c munit/munit.c -o $@
+
+build:
+	mkdir -p $(BUILD)
 
 clean:
-	rm a.out *.o *.out
+	rm -rf $(BUILD)
