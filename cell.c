@@ -4,7 +4,6 @@
 #include <stdio.h>
 
 
-
 char* to_string(int row, int col) {
 
   int length_row = snprintf(NULL, 0, "%d", row);
@@ -34,6 +33,10 @@ void print_str_value(void* val) {
 typedef struct Cell {
   int row;
   int col;
+  struct cell_ * north;
+  struct cell_ * south;
+  struct cell_ * east;
+  struct cell_ * west;
   hash_table* links;
 } Cell;
 
@@ -46,6 +49,10 @@ uint64_t hash(const char* str, size_t length) {
     hash_value = hash_value * str[i];
   }
   return hash_value;
+}
+
+char* cell_to_string(Cell* cell) {
+  return to_string(cell->row, cell->col);
 }
 
 Cell* cell_create(int row, int col) {
@@ -82,11 +89,29 @@ Cell* cell_unlink(Cell* self, Cell* target) {
   return self;
 }
 
-bool linked(Cell* self, Cell* target) {
+Cell* cell_unlink_bidi(Cell* self, Cell* target) {
+  cell_unlink(self, target);
+  cell_unlink(target, self);
+
+  return self;
+}
+
+bool cell_linked(Cell* self, Cell* target) {
 
   return hash_table_lookup(self->links, to_string(target->row, target->col));
 }
 
 char** cell_links(Cell* self) {
   return hash_table_keys(self->links);
+}
+
+Cell** neighbors(Cell* self) {
+  Cell** neighbors = malloc(sizeof(Cell*) * 4);
+
+  neighbors[0] = (Cell*) self->north;
+  neighbors[1] = (Cell*) self->south;
+  neighbors[2] = (Cell*) self->east;
+  neighbors[3] = (Cell*) self->west;
+
+  return neighbors;
 }

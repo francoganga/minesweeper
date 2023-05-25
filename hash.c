@@ -1,203 +1,181 @@
+#include "hash.h"
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
-#define CAPACITY 500
 
-typedef struct Point
-{
-  int x;
-  int y;
-} Point;
+typedef struct entry {
+    char* key;
+    void* value;
 
-int point_cmp(Point* a, Point* b)
-{
-  if ((a->x == b->x) && (a->y == b->y)) {
-    return 0;
-  }
+    struct entry* next;
 
-  return 1;
+} entry;
+
+
+typedef struct _hash_table {
+    uint32_t size;
+    uint32_t count;
+    hashfunction* hf;
+
+    entry** elements;
+} hash_table;
+
+static size_t hash_table_index(hash_table* ht, const char* key) {
+    size_t result = (ht->hf(key, strlen(key))) % ht->size;
+
+    return result;
 }
 
-/*
-  https://stackoverflow.com/a/682617
-*/
-unsigned long hash_function2(Point *point)
-{
-  unsigned long n = ((point->x + point->y)*(point->x + point->y + 1)/2) + point->y;
-  return n;
+
+hash_table* hash_table_create(uint32_t size, hashfunction* hf){
+    hash_table* ht = malloc(sizeof(hash_table));
+    ht->size = size;
+    ht->count = 0;
+    ht->hf = hf;
+    ht->elements = calloc(size, sizeof(entry*));
+
+    return ht;
+
 }
+void hash_table_destroy(hash_table* ht){
+    free(ht->elements);
+    free(ht);
 
-typedef struct Ht_item
-{
-    Point *key;
-    int value;
-} Ht_item;
-
-typedef struct Hash_table
-{
-    Ht_item **items;
-    int size;
-    int count;
-} Hash_table;
-
-Ht_item *create_item(Point *key, int value)
-{
-
-    Ht_item *item = (Ht_item *)malloc(sizeof(Ht_item));
-    item->key = (Point *) malloc(sizeof(Point));
-    item->key = key;
-    item->value = value;
-
-
-
-    printf("created_item: key(%d, %d) - VALUE: %d\n", item->key->x, item->key->y, item->value);
-
-    return item;
 }
+void hash_table_print(printfn* func, hash_table* ht){
 
-void print_item(Ht_item *item)
-{
-  printf("ITEM: (%d, %d) - val: %d\n", item->key->x, item->key->y, item->value);
-}
-
-Hash_table *create_hash_table(int size)
-{
-    Hash_table *table = (Hash_table *)malloc(sizeof(Hash_table));
-
-    table->size = size;
-    table->count = 0;
-    table->items = (Ht_item **) calloc(table->size, sizeof(Ht_item *));
-
-    for (int i = 0; i < table->size; i++)
-    {
-        table->items[i] = NULL;
-    }
-
-    return table;
-}
-
-void free_item(Ht_item *item)
-{
-    free(item->key);
-    free(item);
-}
-
-void free_table(Hash_table* table)
-{
-    for (int i = 0; i < table->size; i++) {
-        Ht_item* item = table->items[i];
-        if (item != NULL)
-            free_item(item);
-    }
-
-    free(table->items);
-    free(table);
-}
-
-void print_table(Hash_table* table)
-{
     printf("\nHash Table\n-------------------\n");
 
-    for (int i = 0; i < table->size; i++)
-    {
-        if (table->items[i])
-        {
-          printf("Index:%d, Key:(%d, %d), Value:%d\n", i, table->items[i]->key->x, table->items[i]->key->y, table->items[i]->value);
+    for (uint32_t i=0; i<ht->size; i++) {
+    
+        if (ht->elements[i] != NULL) {
+    
+            entry* tmp = ht->elements[i];
+    
+            while (tmp != NULL) {
+                if (func != NULL) {
+                  printf("key: %s ", tmp->key);
+                  func(tmp->value);
+                } else {
+                  printf("\"%s\": \"%p\"\n", tmp->key, tmp->value);
+                }
+
+    
+                tmp = tmp->next;
+            }
+            
         }
     }
+
 
     printf("-------------------\n\n");
+
 }
+bool hash_table_insert(hash_table* ht, const char* key, void* value){
+    if (key == NULL || value == NULL) return false;
 
-void handle_collision(Hash_table* table, Ht_item *item)
-{
-    printf("TODO: handle_collission");
-    exit(1);
-}
+    size_t index = hash_table_index(ht, key);
 
-void ht_insert(Hash_table* table, Point *key, int value)
-{
-    printf("insert val: %d\n", value);    
-    Ht_item *item = create_item(key, value);
+    entry* current_entry = ht->elements[index];
 
-    int index = hash_function2(key);
-
-    Ht_item *current_item = table->items[index];
-
-    if (current_item == NULL) {
-
-        if (table->count == table->size) {
-            // HashTable is full.
-            printf("Insert Error: Hash Table is full\n");
-            free_item(item);
-            return;
-        }
-
-
-        print_item(item);
-        table->items[index] = item;
-        table->count++;
-    } else {
-        printf("else ] val is: %d\n", current_item->value);
-        if (point_cmp(current_item->key, key) == 0) {
-            printf("already exists: %d, %d\n", key->x, key->y);
-            printf("val is: %d\n", current_item->value);
-            printf("val to insert is: %d\n", value);
-            table->items[index]->value = value;
-            return;
+    if (current_entry != NULL ) {
+        if (strcmp(current_entry->key, key) == 0) {
+            current_entry->value = value;
+            return true;
         } else {
-            handle_collision(table, item);
-            return;
+
+          entry* e = malloc(sizeof(*e));
+          e->value = value;
+          e->key = malloc(strlen(key) + 1);
+          strcpy(e->key, key);
+          ht->count++;
+
+          current_entry->next = e;
+          return true;
         }
     }
 
-    print_table(table);
+    // TODO: this part could be extracted to a function
+    entry* e = malloc(sizeof(*e));
+    e->value = value;
+    e->key = malloc(strlen(key) + 1);
+    e->key = strcpy(e->key, key);
+
+    e->next = ht->elements[index];
+    ht->elements[index] = e;
+    ht->count++;
+
+    return true;
 }
 
-int* ht_search(Hash_table* table, Point *key)
-{
-    int index = hash_function2(key);
-    Ht_item *item = table->items[index];
+void* hash_table_lookup(hash_table* ht, const char* key){
+    assert(ht != NULL);
 
-    if (item != NULL) {
-        if (point_cmp(item->key, key) == 0) {
-            return &item->value;
-        }
+    if (key == NULL) return false;
+
+    size_t index = hash_table_index(ht, key);
+
+    entry* tmp = ht->elements[index];
+
+    while (tmp != NULL && strcmp(tmp->key, key) != 0) {
+        tmp = tmp->next;
     }
 
-    return NULL;
+    if (tmp == NULL) return NULL;
+
+    return tmp->value;
 }
+void hash_table_delete(hash_table* ht, const char* key){
 
-void print_search(Hash_table* table, Point *key)
-{
-    int* val;
+    assert(ht != NULL);
 
-    if ((val = ht_search(table, key)) == NULL) {
-        printf("Key:(%d, %d) does not exist\n", key->x, key->y);
-        return;
+    if (key == NULL) return;
+
+    size_t index = hash_table_index(ht, key);
+
+    entry* tmp = ht->elements[index];
+    entry* prev = NULL;
+
+    while (tmp != NULL && strcmp(tmp->key, key) != 0) {
+        prev = tmp;
+        tmp = tmp->next;
+    }
+
+    if (tmp == NULL) return;
+
+    if (prev == NULL) {
+        //free(tmp);
+        ht->elements[index] = tmp->next;
     } else {
-        printf("Key:(%d, %d), Value:%d\n", key->x, key->y, *val);
+        // deleting from not the head
+        prev->next = tmp->next;
     }
+    ht->count--;
+
+    free(tmp);
 }
 
-int main()
-{
+char** hash_table_keys(hash_table* ht){
+    assert(ht != NULL);
+    char** keys = malloc(ht->count * sizeof(char*));
+    int key_index = 0;
 
-    Hash_table *table = create_hash_table(CAPACITY);
-    
-
-    Point p1 = {1, 1};
-    Point p2 = {0, 0};
-
-    int val1 = 9;
-    int val2 = 1;
-
-
-    ht_insert(table, &p1, 9);
-    ht_insert(table, &p1, 1);
-    ht_insert(table, &p2, 8);
-    ht_insert(table, {8,8}, 88);
-
-    print_table(table);
+    for (uint32_t i=0; i<ht->size; i++) {
+        if (ht->elements[i] != NULL) {
+            entry* tmp = ht->elements[i];
+            while (tmp != NULL) {
+                keys[key_index] = tmp->key;
+                tmp = tmp->next;
+                key_index++;
+            }
+        }
+    }
+    return keys;
 }
+
+uint32_t hash_table_count(hash_table* ht){
+    assert(ht != NULL);
+    return ht->count;
+}
+

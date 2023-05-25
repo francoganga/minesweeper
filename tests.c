@@ -91,7 +91,7 @@ void test_hash_table_keys() {
   hash_table_insert(table, "a1", &val1);
   hash_table_insert(table, "a2", &val2);
   char** keys = hash_table_keys(table);
-  int keys_size = hash_table_count(table);
+  /* int keys_size = hash_table_count(table); */
 
   munit_assert_string_equal(keys[0], "a1");
   munit_assert_string_equal(keys[1], "a2");
