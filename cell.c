@@ -33,10 +33,10 @@ void print_str_value(void* val) {
 typedef struct Cell {
   int row;
   int col;
-  struct cell_ * north;
-  struct cell_ * south;
-  struct cell_ * east;
-  struct cell_ * west;
+  struct Cell* north;
+  struct Cell* south;
+  struct Cell* east;
+  struct Cell* west;
   hash_table* links;
 } Cell;
 
@@ -51,6 +51,7 @@ uint64_t hash(const char* str, size_t length) {
   return hash_value;
 }
 
+// TODO: this segfaults find out why 
 char* cell_to_string(Cell* cell) {
   return to_string(cell->row, cell->col);
 }
@@ -60,6 +61,10 @@ Cell* cell_create(int row, int col) {
   cell->row = row;
   cell->col = col;
   cell->links = hash_table_create(1000, hash);
+  cell->north = NULL;
+  cell->west = NULL;
+  cell->south = NULL;
+  cell->east = NULL;
   return cell;
 }
 
@@ -108,10 +113,10 @@ char** cell_links(Cell* self) {
 Cell** neighbors(Cell* self) {
   Cell** neighbors = malloc(sizeof(Cell*) * 4);
 
-  neighbors[0] = (Cell*) self->north;
-  neighbors[1] = (Cell*) self->south;
-  neighbors[2] = (Cell*) self->east;
-  neighbors[3] = (Cell*) self->west;
+  neighbors[0] = self->north;
+  neighbors[1] = self->south;
+  neighbors[2] = self->east;
+  neighbors[3] = self->west;
 
   return neighbors;
 }

@@ -2,7 +2,7 @@
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include "cell.c"
+#include "grid.c"
 
 
 void test_to_string() {
@@ -62,10 +62,46 @@ void test_it_returns_cell_links() {
   free(links);
 }
 
+void test_grid() {
+  Grid* grid = grid_create(10, 10);
+
+  grid_prepare(grid);
+  grid_configure_cells(grid);
+
+  munit_assert_int(grid->rows,==, 10);
+  munit_assert_int(grid->columns,==, 10);
+
+  Cell* cell = grid_get_cell(grid, 0, 0);
+  munit_assert_ptr_not_null(cell);
+
+
+
+  //TODO: this one should be null
+  munit_assert_ptr_null(cell->north);
+
+  printf("cell=%s\n", cell_to_string(cell));
+  printf("west=%s\n", cell_to_string(cell->east));
+  printf("south=%s\n", cell_to_string(cell->south));
+  /* printf("north=%s\n", cell_to_string(cell->north)); */
+  /* printf("north of north=%s\n", cell_to_string(cell->north->north)); */
+
+  /* munit_assert_ptr_null(cell->north->north); */
+
+
+
+  printf("done");
+
+
+
+
+
+}
+
 int main() {
 
   test_to_string();
   test_it_links_cells();
   test_it_returns_cell_links();
   test_method_linked();
+  test_grid();
 }
